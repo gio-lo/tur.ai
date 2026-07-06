@@ -16,12 +16,17 @@ def build_application() -> AssistantManager:
     personality_registry = PersonalityRegistry.from_directory(settings.personality_dir)
     memory_store = JSONMemoryStore(settings.memory_file)
     llm_client = build_llm_client(settings)
+    from tur.assistant.prompt_builder import PromptBuilder
 
     return AssistantManager(
         personality_registry=personality_registry,
         memory_store=memory_store,
         llm_client=llm_client,
+        prompt_builder=PromptBuilder(
+            max_reference_sections=settings.max_personality_references,
+        ),
         default_personality=settings.default_personality,
+        max_history_messages=settings.max_history_messages,
     )
 
 

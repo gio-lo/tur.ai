@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Protocol, Sequence
+from typing import Iterator, Protocol, Sequence
 
 
 @dataclass(slots=True, frozen=True)
@@ -19,3 +19,6 @@ class LLMClient(Protocol):
 
     def generate_reply(self, system_prompt: str, messages: Sequence[ChatMessage]) -> str:
         """Generate an assistant reply for the given conversation."""
+
+    def stream_reply(self, system_prompt: str, messages: Sequence[ChatMessage]) -> Iterator[str]:
+        """Stream an assistant reply for the given conversation."""

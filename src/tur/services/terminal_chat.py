@@ -38,8 +38,14 @@ def run_terminal_chat(manager: AssistantManager) -> None:
                 break
             continue
 
-        reply = manager.generate_reply(user_input)
-        print(f"{manager.active_personality.name}: {reply}")
+        print(f"{manager.active_personality.name}: ", end="", flush=True)
+        streamed_any = False
+        for chunk in manager.stream_reply(user_input):
+            streamed_any = True
+            print(chunk, end="", flush=True)
+        if not streamed_any:
+            print("I don't have a response yet.", end="")
+        print()
 
 
 def _handle_command(manager: AssistantManager, name: str, argument: str) -> bool:

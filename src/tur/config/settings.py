@@ -23,6 +23,8 @@ class AppSettings:
     default_personality: str
     personality_dir: Path
     memory_file: Path
+    max_history_messages: int
+    max_personality_references: int
 
     @classmethod
     def load(cls) -> "AppSettings":
@@ -37,4 +39,6 @@ class AppSettings:
             default_personality=os.getenv("DEFAULT_PERSONALITY", "nina"),
             personality_dir=Path(os.getenv("PERSONALITY_DIR", str(DEFAULT_PERSONALITY_DIR))),
             memory_file=PROJECT_ROOT / memory_value,
+            max_history_messages=int(os.getenv("MAX_HISTORY_MESSAGES", "8")),
+            max_personality_references=int(os.getenv("MAX_PERSONALITY_REFERENCES", "2")),
         )

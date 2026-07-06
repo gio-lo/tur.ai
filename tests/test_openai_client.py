@@ -12,6 +12,21 @@ class _StubChat:
         self.completions = completions
 
 
+class _ChunkDelta:
+    def __init__(self, content: str | None) -> None:
+        self.content = content
+
+
+class _ChunkChoice:
+    def __init__(self, content: str | None) -> None:
+        self.delta = _ChunkDelta(content)
+
+
+class _Chunk:
+    def __init__(self, content: str | None) -> None:
+        self.choices = [_ChunkChoice(content)]
+
+
 def test_openai_client_falls_back_on_generic_failure(monkeypatch) -> None:
     client = OpenAIChatClient(api_key="test-key", model="gpt-4.1-mini")
 
@@ -30,3 +45,23 @@ def test_openai_client_falls_back_on_generic_failure(monkeypatch) -> None:
         reply
         == "OpenAI request failed unexpectedly, so I could not reach the live model. Details: RuntimeError: boom."
     )
+
+
+def test_openai_client_streams_content_chunks() -> None:
+    client = OpenAIChatClient(api_key="test-key", model="gpt-4.1-mini")
+
+    class StreamingCompletions:
+        def create(self, **kwargs):
+            assert kwargs["stream"] is True
+            return [_Chunk("hel"), _Chunk("lo"), _Chunk(None)]
+
+    client._client = _StubClient(_StubChat(StreamingCompletions()))
+
+    chunks = list(
+        client.stream_reply(
+            system_prompt="test",
+            messages=[ChatMessage(role="user", content="hello")],
+        )
+    )
+
+    assert chunks == ["hel", "lo"]

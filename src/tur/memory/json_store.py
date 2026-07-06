@@ -15,6 +15,7 @@ class JSONMemoryStore(MemoryStore):
 
     def __init__(self, path: Path) -> None:
         self._path = path
+        self._cache: list[MemoryEntry] | None = None
         self._path.parent.mkdir(parents=True, exist_ok=True)
 
     def remember(self, content: str) -> MemoryEntry:
@@ -49,12 +50,18 @@ class JSONMemoryStore(MemoryStore):
         return self._load()
 
     def _load(self) -> list[MemoryEntry]:
+        if self._cache is not None:
+            return list(self._cache)
+
         if not self._path.exists():
+            self._cache = []
             return []
 
         raw_items = json.loads(self._path.read_text(encoding="utf-8"))
-        return [MemoryEntry(**item) for item in raw_items]
+        self._cache = [MemoryEntry(**item) for item in raw_items]
+        return list(self._cache)
 
     def _save(self, memories: list[MemoryEntry]) -> None:
         payload = [memory.to_dict() for memory in memories]
+        self._cache = list(memories)
         self._path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
