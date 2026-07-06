@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from typing import Sequence
 
+from tur.environment.models import EnvironmentEvent
+from tur.environment.presence_models import PersonalityPresence
 from tur.llm.base import ChatMessage
 from tur.memory.models import MemoryEntry
 from tur.personalities.models import PersonalityProfile
@@ -27,11 +29,16 @@ class PromptBuilder:
         self,
         personality: PersonalityProfile,
         recalled_memories: Sequence[MemoryEntry],
+        environment_events: Sequence[EnvironmentEvent],
+        active_presence: PersonalityPresence | None,
+        other_presences: Sequence[PersonalityPresence],
         conversation: Sequence[ChatMessage],
         user_message: str,
     ) -> str:
         """Compose the active system prompt for the LLM."""
         memory_block = self._format_memories(recalled_memories)
+        environment_block = self._format_environment(environment_events)
+        presence_block = self._format_presence(personality, active_presence, other_presences)
         conversation_note = (
             "You are in an ongoing chat session. Maintain continuity with prior messages."
             if conversation
@@ -45,6 +52,8 @@ class PromptBuilder:
                 f"Humor level: {personality.humor_level}",
                 f"Verbosity: {personality.verbosity}",
                 self._format_references(personality, user_message, conversation),
+                presence_block,
+                environment_block,
                 conversation_note,
                 memory_block,
             ]
@@ -56,6 +65,50 @@ class PromptBuilder:
 
         formatted = "\n".join(self._format_memory_line(memory) for memory in memories)
         return f"Relevant rider memory:\n{formatted}"
+
+    def _format_environment(self, events: Sequence[EnvironmentEvent]) -> str:
+        if not events:
+            return "Recent environment: none."
+
+        formatted = "\n".join(f"- {event.summary}" for event in events)
+        return (
+            "Recent environment:\n"
+            f"{formatted}\n"
+            "Use only when relevant. Treat as ambient context, not shared-memory exposition."
+        )
+
+    def _format_presence(
+        self,
+        personality: PersonalityProfile,
+        active_presence: PersonalityPresence | None,
+        other_presences: Sequence[PersonalityPresence],
+    ) -> str:
+        lines = [
+            "Presence:",
+            "- You are an ongoing presence around Gio.",
+        ]
+        if personality.hobbies:
+            hobbies = ", ".join(personality.hobbies[:2])
+            lines.append(f"- Interests: {hobbies}.")
+        if personality.ambient_style:
+            lines.append(f"- Vibe: {personality.ambient_style}.")
+        if active_presence and active_presence.current_activity:
+            lines.append(f"- Current background activity: {active_presence.current_activity}.")
+        elif personality.default_activity:
+            lines.append(f"- Current background activity: {personality.default_activity}.")
+
+        if other_presences:
+            for presence in other_presences[:1]:
+                detail = presence.current_activity or presence.current_focus
+                if detail:
+                    lines.append(
+                        f"- {presence.personality_name} recently seemed occupied with {detail}."
+                    )
+
+        lines.append(
+            "- Reference these lightly. Do not let them make your reply longer."
+        )
+        return "\n".join(lines)
 
     def _format_references(
         self,

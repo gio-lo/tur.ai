@@ -26,6 +26,9 @@ class PersonalityProfile:
     speaking_style: str
     humor_level: str
     verbosity: str
+    hobbies: tuple[str, ...] = ()
+    default_activity: str | None = None
+    ambient_style: str | None = None
     references: tuple[PersonalityReference, ...] = ()
 
     @classmethod
@@ -60,5 +63,8 @@ class PersonalityProfile:
             speaking_style=data["speaking_style"],
             humor_level=data["humor_level"],
             verbosity=data["verbosity"],
+            hobbies=tuple(data.get("hobbies", [])),
+            default_activity=data.get("default_activity"),
+            ambient_style=data.get("ambient_style"),
             references=references,
         )

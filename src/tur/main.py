@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from tur.assistant.manager import AssistantManager
 from tur.config.settings import AppSettings
+from tur.environment.json_store import JSONEnvironmentStore
+from tur.environment.presence_store import JSONPersonalityPresenceStore
 from tur.llm.factory import build_llm_client
 from tur.memory.json_store import JSONMemoryStore
 from tur.personalities.loader import PersonalityRegistry
@@ -15,12 +17,16 @@ def build_application() -> AssistantManager:
     settings = AppSettings.load()
     personality_registry = PersonalityRegistry.from_directory(settings.personality_dir)
     memory_store = JSONMemoryStore(settings.memory_file)
+    environment_store = JSONEnvironmentStore(settings.environment_file)
+    presence_store = JSONPersonalityPresenceStore(settings.presence_file)
     llm_client = build_llm_client(settings)
     from tur.assistant.prompt_builder import PromptBuilder
 
     return AssistantManager(
         personality_registry=personality_registry,
         memory_store=memory_store,
+        environment_store=environment_store,
+        presence_store=presence_store,
         llm_client=llm_client,
         prompt_builder=PromptBuilder(
             max_reference_sections=settings.max_personality_references,
@@ -29,6 +35,7 @@ def build_application() -> AssistantManager:
         ),
         default_personality=settings.default_personality,
         max_history_messages=settings.max_history_messages,
+        max_environment_events=settings.max_environment_events,
     )
 
 

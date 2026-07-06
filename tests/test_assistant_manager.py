@@ -2,6 +2,8 @@ from pathlib import Path
 
 from tur.assistant.prompt_builder import PromptBuilder
 from tur.assistant.manager import AssistantManager
+from tur.environment.json_store import JSONEnvironmentStore
+from tur.environment.presence_store import JSONPersonalityPresenceStore
 from tur.llm.base import ChatMessage, LLMClient
 from tur.memory.extractor import MemoryExtractor
 from tur.memory.json_store import JSONMemoryStore
@@ -19,10 +21,13 @@ class StubLLMClient(LLMClient):
     def generate_reply(self, system_prompt: str, messages: list[ChatMessage]) -> str:
         assert "Relevant rider memory" in system_prompt
         assert "Personality references:" in system_prompt
+        assert "Presence:" in system_prompt
+        assert "Recent environment:" in system_prompt
         self.message_counts.append(len(messages))
         return f"stub reply to: {messages[-1].content}"
 
     def stream_reply(self, system_prompt: str, messages: list[ChatMessage]):
+        assert "Presence:" in system_prompt
         self.message_counts.append(len(messages))
         yield f"stub reply to: {messages[-1].content}"
 
@@ -30,12 +35,16 @@ class StubLLMClient(LLMClient):
 def test_assistant_manager_uses_memory_and_llm(tmp_path) -> None:
     registry = PersonalityRegistry.from_directory(PERSONALITY_DIR)
     memory_store = JSONMemoryStore(tmp_path / "memory.json")
+    environment_store = JSONEnvironmentStore(tmp_path / "environment.json")
+    presence_store = JSONPersonalityPresenceStore(tmp_path / "presence.json")
     memory_store.remember("The rider owns a Ninja 400.")
     llm_client = StubLLMClient()
 
     manager = AssistantManager(
         personality_registry=registry,
         memory_store=memory_store,
+        environment_store=environment_store,
+        presence_store=presence_store,
         llm_client=llm_client,
         default_personality="nina",
     )
@@ -49,11 +58,15 @@ def test_assistant_manager_uses_memory_and_llm(tmp_path) -> None:
 def test_assistant_manager_caps_history_and_streams(tmp_path) -> None:
     registry = PersonalityRegistry.from_directory(PERSONALITY_DIR)
     memory_store = JSONMemoryStore(tmp_path / "memory.json")
+    environment_store = JSONEnvironmentStore(tmp_path / "environment.json")
+    presence_store = JSONPersonalityPresenceStore(tmp_path / "presence.json")
     llm_client = StubLLMClient()
 
     manager = AssistantManager(
         personality_registry=registry,
         memory_store=memory_store,
+        environment_store=environment_store,
+        presence_store=presence_store,
         llm_client=llm_client,
         prompt_builder=PromptBuilder(max_reference_sections=1),
         default_personality="nina",
@@ -76,6 +89,9 @@ def test_prompt_builder_can_skip_irrelevant_reference_fallback(tmp_path) -> None
     prompt = builder.build(
         personality=personality,
         recalled_memories=[],
+        environment_events=[],
+        active_presence=None,
+        other_presences=[],
         conversation=[],
         user_message="hello",
     )
@@ -86,11 +102,15 @@ def test_prompt_builder_can_skip_irrelevant_reference_fallback(tmp_path) -> None
 def test_assistant_manager_auto_saves_selected_memories_across_personalities(tmp_path) -> None:
     registry = PersonalityRegistry.from_directory(PERSONALITY_DIR)
     memory_store = JSONMemoryStore(tmp_path / "memory.json")
+    environment_store = JSONEnvironmentStore(tmp_path / "environment.json")
+    presence_store = JSONPersonalityPresenceStore(tmp_path / "presence.json")
     llm_client = StubLLMClient()
 
     manager = AssistantManager(
         personality_registry=registry,
         memory_store=memory_store,
+        environment_store=environment_store,
+        presence_store=presence_store,
         llm_client=llm_client,
         memory_extractor=MemoryExtractor(),
         default_personality="nina",
@@ -129,8 +149,58 @@ def test_prompt_builder_requires_explicit_first_sentence_source_for_handoff_memo
                 source_personality_name="Nina",
             )
         ],
+        environment_events=[],
+        active_presence=None,
+        other_presences=[],
         conversation=[],
         user_message="what am i allergic to?",
     )
 
     assert "explicitly say in your first sentence that Nina told you" in prompt
+
+
+def test_assistant_manager_records_recent_environment_events(tmp_path) -> None:
+    registry = PersonalityRegistry.from_directory(PERSONALITY_DIR)
+    memory_store = JSONMemoryStore(tmp_path / "memory.json")
+    environment_store = JSONEnvironmentStore(tmp_path / "environment.json")
+    presence_store = JSONPersonalityPresenceStore(tmp_path / "presence.json")
+    llm_client = StubLLMClient()
+
+    manager = AssistantManager(
+        personality_registry=registry,
+        memory_store=memory_store,
+        environment_store=environment_store,
+        presence_store=presence_store,
+        llm_client=llm_client,
+        default_personality="tom",
+        max_environment_events=3,
+    )
+
+    manager.generate_reply("should I eat this peanut butter jelly sandwich?")
+
+    events = environment_store.recent_events(limit=1)
+    assert events[0].summary == "Tom was recently talking with Gio about food and snack safety."
+
+
+def test_assistant_manager_updates_personality_presence_state(tmp_path) -> None:
+    registry = PersonalityRegistry.from_directory(PERSONALITY_DIR)
+    memory_store = JSONMemoryStore(tmp_path / "memory.json")
+    environment_store = JSONEnvironmentStore(tmp_path / "environment.json")
+    presence_store = JSONPersonalityPresenceStore(tmp_path / "presence.json")
+    llm_client = StubLLMClient()
+
+    manager = AssistantManager(
+        personality_registry=registry,
+        memory_store=memory_store,
+        environment_store=environment_store,
+        presence_store=presence_store,
+        llm_client=llm_client,
+        default_personality="tom",
+    )
+
+    manager.generate_reply("help me think through this architecture")
+
+    presence = presence_store.get("tom")
+    assert presence is not None
+    assert presence.personality_name == "Tom"
+    assert presence.current_activity is not None

@@ -5,6 +5,10 @@ from __future__ import annotations
 from typing import Iterator
 
 from tur.assistant.prompt_builder import PromptBuilder
+from tur.environment.base import EnvironmentStore
+from tur.environment.extractor import EnvironmentExtractor
+from tur.environment.presence_extractor import PresenceExtractor
+from tur.environment.presence_store import JSONPersonalityPresenceStore
 from tur.llm.base import ChatMessage, LLMClient
 from tur.memory.base import MemoryStore
 from tur.memory.extractor import MemoryExtractor
@@ -20,19 +24,29 @@ class AssistantManager:
         self,
         personality_registry: PersonalityRegistry,
         memory_store: MemoryStore,
+        environment_store: EnvironmentStore,
+        presence_store: JSONPersonalityPresenceStore,
         llm_client: LLMClient,
         prompt_builder: PromptBuilder | None = None,
         default_personality: str = "nina",
         max_history_messages: int = 8,
         memory_extractor: MemoryExtractor | None = None,
+        environment_extractor: EnvironmentExtractor | None = None,
+        presence_extractor: PresenceExtractor | None = None,
+        max_environment_events: int = 3,
     ) -> None:
         self._registry = personality_registry
         self._memory_store = memory_store
+        self._environment_store = environment_store
+        self._presence_store = presence_store
         self._llm_client = llm_client
         self._prompt_builder = prompt_builder or PromptBuilder()
         self._memory_extractor = memory_extractor or MemoryExtractor()
+        self._environment_extractor = environment_extractor or EnvironmentExtractor()
+        self._presence_extractor = presence_extractor or PresenceExtractor()
         self._history: list[ChatMessage] = []
         self._max_history_messages = max(0, max_history_messages)
+        self._max_environment_events = max(0, max_environment_events)
         self._active_personality = self._registry.get(default_personality)
 
     @property
@@ -62,6 +76,7 @@ class AssistantManager:
         system_prompt, conversation, user_chat_message = self._build_turn_context(user_message)
         reply = self._llm_client.generate_reply(system_prompt=system_prompt, messages=conversation)
         self._record_turn(user_chat_message, reply)
+        self._record_environment_event(user_message, reply)
         return reply
 
     def stream_reply(self, user_message: str) -> Iterator[str]:
@@ -74,6 +89,7 @@ class AssistantManager:
 
         reply = "".join(chunks).strip() or "I don't have a response yet."
         self._record_turn(user_chat_message, reply)
+        self._record_environment_event(user_message, reply)
 
     def _build_turn_context(self, user_message: str) -> tuple[str, list[ChatMessage], ChatMessage]:
         self._remember_from_message(user_message)
@@ -83,12 +99,22 @@ class AssistantManager:
             personality_key=self._active_personality.key,
             personality_name=self._active_personality.name,
         )
+        environment_events = self._environment_store.recent_events(limit=self._max_environment_events)
+        active_presence = self._presence_store.get(self._active_personality.key)
+        other_presences = [
+            presence
+            for presence in self._presence_store.list()
+            if presence.personality_key != self._active_personality.key
+        ]
         history = self._recent_history()
         user_chat_message = ChatMessage(role="user", content=user_message)
         conversation = [*history, user_chat_message]
         system_prompt = self._prompt_builder.build(
             personality=self._active_personality,
             recalled_memories=recalled_memories,
+            environment_events=environment_events,
+            active_presence=active_presence,
+            other_presences=other_presences,
             conversation=history,
             user_message=user_message,
         )
@@ -104,6 +130,32 @@ class AssistantManager:
             source_personality_key=self._active_personality.key,
             source_personality_name=self._active_personality.name,
         )
+
+    def _record_environment_event(self, user_message: str, reply: str) -> None:
+        summary = self._environment_extractor.summarize_interaction(
+            personality_name=self._active_personality.name,
+            user_message=user_message,
+            assistant_reply=reply,
+        )
+        if summary is None:
+            return
+
+        self._environment_store.record_event(
+            summary,
+            source_personality_key=self._active_personality.key,
+            source_personality_name=self._active_personality.name,
+        )
+        self._update_presence(user_message, reply)
+
+    def _update_presence(self, user_message: str, reply: str) -> None:
+        previous = self._presence_store.get(self._active_personality.key)
+        updated = self._presence_extractor.update_presence(
+            profile=self._active_personality,
+            user_message=user_message,
+            assistant_reply=reply,
+            previous=previous,
+        )
+        self._presence_store.upsert(updated)
 
     def _recent_history(self) -> list[ChatMessage]:
         if self._max_history_messages <= 0:

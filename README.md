@@ -9,6 +9,8 @@
 - Personality-driven assistant behavior
 - Swappable LLM interface
 - JSON-backed memory abstraction
+- JSON-backed environment context
+- JSON-backed personality presence state
 - Environment-based configuration
 - Modular package layout for future expansion
 
@@ -48,7 +50,7 @@ Terminal UI
     ↓
 AssistantManager
     ↓
-PromptBuilder + MemoryStore + PersonalityRegistry
+PromptBuilder + MemoryStore + EnvironmentStore + PersonalityRegistry
     ↓
 LLMClient interface
     ↓
@@ -92,6 +94,11 @@ This keeps OpenAI-specific code isolated behind a provider boundary and prevents
 
 If `OPENAI_API_KEY` is not configured, the app falls back to a development LLM client so the architecture and terminal workflow can still be exercised locally.
 
+The assistant also persists:
+- durable memory in `MEMORY_FILE`
+- recent ambient context in `ENVIRONMENT_FILE`
+- lightweight per-personality presence state in `PRESENCE_FILE`
+
 ## Terminal Commands
 
 - `/switch nina`
@@ -114,4 +121,3 @@ PYTHONPATH=src pytest
 ## Roadmap
 
 See [docs/roadmap.md](/home/tura/turai/docs/roadmap.md) and [docs/architecture.md](/home/tura/turai/docs/architecture.md) for details.
-

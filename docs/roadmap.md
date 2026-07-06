@@ -15,6 +15,7 @@
 - improve memory retrieval
 - add structured assistant events
 - persist conversation transcripts
+- deepen personality presence and off-screen continuity
 
 ## Sprint 2: Voice Layer
 

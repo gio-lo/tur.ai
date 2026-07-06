@@ -22,6 +22,14 @@ Sprint 0 prioritizes clear boundaries over feature breadth. The assistant is int
 
 `src/tur/memory/base.py` defines the memory interface. `src/tur/memory/json_store.py` provides the Sprint 0 implementation. The assistant does not know whether memory comes from JSON, SQLite, or a vector store.
 
+### Environment Store
+
+`src/tur/environment/base.py` defines a lightweight world-state interface. `src/tur/environment/json_store.py` stores recent ambient events such as what a personality was recently discussing with Gio. This lets personalities reference recent activity naturally without talking about shared memory mechanics.
+
+### Presence State
+
+`src/tur/environment/presence_store.py` persists lightweight per-personality presence such as current focus and background activity. This is intentionally shallow and heuristic-driven so it adds continuity without adding expensive generation or retrieval steps.
+
 ### LLM Layer
 
 `src/tur/llm/base.py` defines the LLM interface. `src/tur/llm/openai_client.py` contains the OpenAI SDK integration. `src/tur/llm/development_client.py` exists to keep the app runnable without credentials while preserving the abstraction.
