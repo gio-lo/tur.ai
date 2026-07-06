@@ -12,6 +12,7 @@ PERSONALITY_DIR = Path(__file__).resolve().parents[1] / "src" / "tur" / "persona
 class StubLLMClient(LLMClient):
     def generate_reply(self, system_prompt: str, messages: list[ChatMessage]) -> str:
         assert "Relevant rider memory" in system_prompt
+        assert "Personality references:" in system_prompt
         return f"stub reply to: {messages[-1].content}"
 
 
@@ -24,7 +25,7 @@ def test_assistant_manager_uses_memory_and_llm(tmp_path) -> None:
         personality_registry=registry,
         memory_store=memory_store,
         llm_client=StubLLMClient(),
-        default_personality="karen",
+        default_personality="nina",
     )
 
     reply = manager.generate_reply("Tell me what you know about my bike.")

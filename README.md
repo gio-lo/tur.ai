@@ -94,8 +94,8 @@ If `OPENAI_API_KEY` is not configured, the app falls back to a development LLM c
 
 ## Terminal Commands
 
+- `/switch nina`
 - `/switch tom`
-- `/switch karen`
 - `/switch asuka`
 - `/switch tito`
 - `/memory`
@@ -114,5 +114,4 @@ PYTHONPATH=src pytest
 ## Roadmap
 
 See [docs/roadmap.md](/home/tura/turai/docs/roadmap.md) and [docs/architecture.md](/home/tura/turai/docs/architecture.md) for details.
-
 

@@ -34,7 +34,7 @@ class AppSettings:
         return cls(
             openai_api_key=os.getenv("OPENAI_API_KEY") or None,
             openai_model=os.getenv("OPENAI_MODEL", "gpt-4.1-mini"),
-            default_personality=os.getenv("DEFAULT_PERSONALITY", "karen"),
+            default_personality=os.getenv("DEFAULT_PERSONALITY", "nina"),
             personality_dir=Path(os.getenv("PERSONALITY_DIR", str(DEFAULT_PERSONALITY_DIR))),
             memory_file=PROJECT_ROOT / memory_value,
         )

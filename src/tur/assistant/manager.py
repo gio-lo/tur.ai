@@ -19,7 +19,7 @@ class AssistantManager:
         memory_store: MemoryStore,
         llm_client: LLMClient,
         prompt_builder: PromptBuilder | None = None,
-        default_personality: str = "karen",
+        default_personality: str = "nina",
     ) -> None:
         self._registry = personality_registry
         self._memory_store = memory_store

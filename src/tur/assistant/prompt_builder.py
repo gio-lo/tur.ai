@@ -32,6 +32,7 @@ class PromptBuilder:
                 f"Speaking style: {personality.speaking_style}",
                 f"Humor level: {personality.humor_level}",
                 f"Verbosity: {personality.verbosity}",
+                self._format_references(personality),
                 conversation_note,
                 memory_block,
             ]
@@ -43,3 +44,15 @@ class PromptBuilder:
 
         formatted = "\n".join(f"- {memory.content}" for memory in memories)
         return f"Relevant rider memory:\n{formatted}"
+
+    def _format_references(self, personality: PersonalityProfile) -> str:
+        if not personality.references:
+            return "Personality references: none."
+
+        sections = "\n\n".join(
+            [
+                f"[Reference: {reference.name}]\n{reference.content}"
+                for reference in personality.references
+            ]
+        )
+        return f"Personality references:\n{sections}"

@@ -6,6 +6,14 @@ from dataclasses import dataclass
 
 
 @dataclass(slots=True, frozen=True)
+class PersonalityReference:
+    """Supplemental text file loaded into a personality's prompt context."""
+
+    name: str
+    content: str
+
+
+@dataclass(slots=True, frozen=True)
 class PersonalityProfile:
     """Configuration for one assistant personality."""
 
@@ -18,9 +26,15 @@ class PersonalityProfile:
     speaking_style: str
     humor_level: str
     verbosity: str
+    references: tuple[PersonalityReference, ...] = ()
 
     @classmethod
-    def from_dict(cls, key: str, data: dict[str, str]) -> "PersonalityProfile":
+    def from_dict(
+        cls,
+        key: str,
+        data: dict[str, str],
+        references: tuple[PersonalityReference, ...] = (),
+    ) -> "PersonalityProfile":
         """Create a profile from YAML-loaded data."""
         required_fields = {
             "name",
@@ -46,4 +60,5 @@ class PersonalityProfile:
             speaking_style=data["speaking_style"],
             humor_level=data["humor_level"],
             verbosity=data["verbosity"],
+            references=references,
         )
