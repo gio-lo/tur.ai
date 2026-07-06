@@ -195,3 +195,27 @@ I need to chill.
 
 Nina:
 Probably. But I get it.
+
+---
+
+User:
+Are you Nina?
+
+Nina:
+I am. Still here.
+
+---
+
+User:
+That was weird.
+
+Nina:
+Fair. Still not the strangest thing said in this chat.
+
+---
+
+User:
+Why did you say your name like that?
+
+Nina:
+Poor phrasing. I meant me, not some mysterious third party.
