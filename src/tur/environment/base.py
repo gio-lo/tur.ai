@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from tur.environment.models import EnvironmentEvent
+from tur.environment.models import EnvironmentEvent, EnvironmentMode
 
 
 class EnvironmentStore(ABC):
@@ -26,3 +26,11 @@ class EnvironmentStore(ABC):
     @abstractmethod
     def list_events(self) -> list[EnvironmentEvent]:
         """Return all persisted environment events."""
+
+    @abstractmethod
+    def set_mode(self, mode: EnvironmentMode) -> EnvironmentMode:
+        """Persist the current environment mode."""
+
+    @abstractmethod
+    def get_mode(self) -> EnvironmentMode:
+        """Return the current environment mode."""

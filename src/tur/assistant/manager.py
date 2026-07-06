@@ -7,6 +7,7 @@ from typing import Iterator
 from tur.assistant.prompt_builder import PromptBuilder
 from tur.environment.base import EnvironmentStore
 from tur.environment.extractor import EnvironmentExtractor
+from tur.environment.models import EnvironmentMode
 from tur.environment.presence_extractor import PresenceExtractor
 from tur.environment.presence_store import JSONPersonalityPresenceStore
 from tur.llm.base import ChatMessage, LLMClient
@@ -71,6 +72,14 @@ class AssistantManager:
         """Expose stored memories without leaking storage details."""
         return self._memory_store.list_memories()
 
+    def set_mode(self, mode: EnvironmentMode) -> EnvironmentMode:
+        """Update the assistant's current environment mode."""
+        return self._environment_store.set_mode(mode)
+
+    def get_mode(self) -> EnvironmentMode:
+        """Return the current environment mode."""
+        return self._environment_store.get_mode()
+
     def generate_reply(self, user_message: str) -> str:
         """Generate a reply for the current conversation turn."""
         system_prompt, conversation, user_chat_message = self._build_turn_context(user_message)
@@ -100,6 +109,7 @@ class AssistantManager:
             personality_name=self._active_personality.name,
         )
         environment_events = self._environment_store.recent_events(limit=self._max_environment_events)
+        environment_mode = self._environment_store.get_mode()
         active_presence = self._presence_store.get(self._active_personality.key)
         other_presences = [
             presence
@@ -113,6 +123,7 @@ class AssistantManager:
             personality=self._active_personality,
             recalled_memories=recalled_memories,
             environment_events=environment_events,
+            environment_mode=environment_mode,
             active_presence=active_presence,
             other_presences=other_presences,
             conversation=history,

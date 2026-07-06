@@ -23,6 +23,7 @@ class StubLLMClient(LLMClient):
         assert "Personality references:" in system_prompt
         assert "Presence:" in system_prompt
         assert "Recent environment:" in system_prompt
+        assert "Current mode:" in system_prompt
         self.message_counts.append(len(messages))
         return f"stub reply to: {messages[-1].content}"
 
@@ -90,6 +91,7 @@ def test_prompt_builder_can_skip_irrelevant_reference_fallback(tmp_path) -> None
         personality=personality,
         recalled_memories=[],
         environment_events=[],
+        environment_mode="parked",
         active_presence=None,
         other_presences=[],
         conversation=[],
@@ -150,6 +152,7 @@ def test_prompt_builder_requires_explicit_first_sentence_source_for_handoff_memo
             )
         ],
         environment_events=[],
+        environment_mode="parked",
         active_presence=None,
         other_presences=[],
         conversation=[],
@@ -204,3 +207,24 @@ def test_assistant_manager_updates_personality_presence_state(tmp_path) -> None:
     assert presence is not None
     assert presence.personality_name == "Tom"
     assert presence.current_activity is not None
+
+
+def test_assistant_manager_can_set_mode(tmp_path) -> None:
+    registry = PersonalityRegistry.from_directory(PERSONALITY_DIR)
+    memory_store = JSONMemoryStore(tmp_path / "memory.json")
+    environment_store = JSONEnvironmentStore(tmp_path / "environment.json")
+    presence_store = JSONPersonalityPresenceStore(tmp_path / "presence.json")
+    llm_client = StubLLMClient()
+
+    manager = AssistantManager(
+        personality_registry=registry,
+        memory_store=memory_store,
+        environment_store=environment_store,
+        presence_store=presence_store,
+        llm_client=llm_client,
+        default_personality="tom",
+    )
+
+    manager.set_mode("riding")
+
+    assert manager.get_mode() == "riding"

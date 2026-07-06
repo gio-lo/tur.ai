@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import Sequence
 
-from tur.environment.models import EnvironmentEvent
+from tur.environment.models import EnvironmentEvent, EnvironmentMode
 from tur.environment.presence_models import PersonalityPresence
 from tur.llm.base import ChatMessage
 from tur.memory.models import MemoryEntry
@@ -30,6 +30,7 @@ class PromptBuilder:
         personality: PersonalityProfile,
         recalled_memories: Sequence[MemoryEntry],
         environment_events: Sequence[EnvironmentEvent],
+        environment_mode: EnvironmentMode,
         active_presence: PersonalityPresence | None,
         other_presences: Sequence[PersonalityPresence],
         conversation: Sequence[ChatMessage],
@@ -38,6 +39,7 @@ class PromptBuilder:
         """Compose the active system prompt for the LLM."""
         memory_block = self._format_memories(recalled_memories)
         environment_block = self._format_environment(environment_events)
+        mode_block = self._format_mode(environment_mode)
         presence_block = self._format_presence(personality, active_presence, other_presences)
         conversation_note = (
             "You are in an ongoing chat session. Maintain continuity with prior messages."
@@ -53,6 +55,7 @@ class PromptBuilder:
                 f"Verbosity: {personality.verbosity}",
                 self._format_references(personality, user_message, conversation),
                 presence_block,
+                mode_block,
                 environment_block,
                 conversation_note,
                 memory_block,
@@ -76,6 +79,14 @@ class PromptBuilder:
             f"{formatted}\n"
             "Use only when relevant. Treat as ambient context, not shared-memory exposition."
         )
+
+    def _format_mode(self, mode: EnvironmentMode) -> str:
+        mode_rules = {
+            "riding": "Current mode: riding. Be as brief as possible. Prioritize safety and low distraction.",
+            "stopped": "Current mode: stopped. Stay brief, but you may add a little context if useful.",
+            "parked": "Current mode: parked. You may show more personality, but still keep replies naturally concise.",
+        }
+        return mode_rules[mode]
 
     def _format_presence(
         self,

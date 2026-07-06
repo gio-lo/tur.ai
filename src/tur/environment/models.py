@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from typing import Literal
+
+
+EnvironmentMode = Literal["riding", "stopped", "parked"]
 
 
 @dataclass(slots=True, frozen=True)

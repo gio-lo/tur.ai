@@ -8,6 +8,7 @@ from tur.assistant.manager import AssistantManager
 
 HELP_TEXT = """Available commands:
 /switch <name>  Switch assistant personality
+/mode <state>   Set mode: riding, stopped, parked
 /memory         Show stored memories
 /remember <text> Store a memory
 /help           Show this help text
@@ -82,6 +83,15 @@ def _handle_command(manager: AssistantManager, name: str, argument: str) -> bool
         print("System: Stored memories:")
         for memory in memories:
             print(f"- {memory.content}")
+        return False
+
+    if name == "mode":
+        if argument not in {"riding", "stopped", "parked"}:
+            print("System: Usage: /mode <riding|stopped|parked>")
+            return False
+
+        mode = manager.set_mode(argument)
+        print(f"System: Mode set to {mode}.")
         return False
 
     if name == "remember":
