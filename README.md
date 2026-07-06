@@ -2,7 +2,6 @@
 
 `tur.ai` is the software foundation for an AI operating system for motorcycles.
 
-Sprint 0 focuses on one thing: a clean, maintainable architecture for a terminal-based assistant running on a laptop. It does not attempt to ship voice, Raspberry Pi integration, Bluetooth, GPS, Spotify, or diagnostics yet. The codebase is structured so those capabilities can be added later without rewriting the core assistant.
 
 ## Current Scope
 
@@ -70,7 +69,7 @@ This keeps OpenAI-specific code isolated behind a provider boundary and prevents
 2. Install dependencies:
 
    ```bash
-   python3.12 -m pip install -r requirements.txt
+   pip install -r requirements.txt
    ```
 
 3. Configure environment variables:
@@ -88,7 +87,7 @@ This keeps OpenAI-specific code isolated behind a provider boundary and prevents
 5. Run the assistant:
 
    ```bash
-   PYTHONPATH=src python3.12 -m tur.main
+   PYTHONPATH=src python -m tur.main
    ```
 
 If `OPENAI_API_KEY` is not configured, the app falls back to a development LLM client so the architecture and terminal workflow can still be exercised locally.
@@ -109,29 +108,11 @@ If `OPENAI_API_KEY` is not configured, the app falls back to a development LLM c
 Run the test suite with:
 
 ```bash
-PYTHONPATH=src python3.12 -m pytest
+PYTHONPATH=src pytest
 ```
 
 ## Roadmap
 
-Sprint 0 establishes the foundation for:
-
-- voice input and text-to-speech
-- wake phrase detection
-- Raspberry Pi deployment
-- Bluetooth accessory control
-- Spotify integration
-- GPS and ride-aware context
-- bike diagnostics and telemetry
-- richer memory backends
-- multiple LLM providers
-
 See [docs/roadmap.md](/home/tura/turai/docs/roadmap.md) and [docs/architecture.md](/home/tura/turai/docs/architecture.md) for details.
 
-## Design Principles
 
-- Keep interfaces explicit and small.
-- Separate behavior from infrastructure.
-- Prefer composition over global state.
-- Treat personalities, memory, and providers as pluggable modules.
-- Optimize for long-term maintainability over short-term convenience.
