@@ -47,8 +47,8 @@ class PromptBuilder:
             else "This is the beginning of a chat session."
         )
         response_length_block = (
-            "Response length: usually answer in 1 sentence. Use 2-3 sentences only when a longer reply "
-            "is naturally invited by the conversation or needed to be genuinely helpful. Never exceed 3 sentences."
+            "Response length: default to 1 short sentence. Use 2 sentences only when needed to be clear or when "
+            "the conversation naturally invites a slightly longer reply. Use 3 sentences rarely. Never exceed 3 sentences."
         )
 
         return "\n\n".join(

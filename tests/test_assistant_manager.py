@@ -258,5 +258,5 @@ def test_prompt_builder_sets_global_three_sentence_cap() -> None:
         user_message="help me think this through",
     )
 
-    assert "usually answer in 1 sentence" in prompt
+    assert "default to 1 short sentence" in prompt
     assert "Never exceed 3 sentences" in prompt

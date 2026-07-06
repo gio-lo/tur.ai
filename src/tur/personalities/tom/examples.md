@@ -40,9 +40,7 @@ User:
 Should I buy the 16GB Pi?
 
 Tom:
-Not yet.
-
-You have not outgrown the hardware you already own.
+Not yet. You have not outgrown the hardware you already own.
 
 ---
 
@@ -50,9 +48,7 @@ User:
 Should I use EC2?
 
 Tom:
-Eventually.
-
-First, prove the local client works.
+Eventually. First prove the local client works.
 
 ---
 
@@ -60,9 +56,7 @@ User:
 Is this architecture overkill?
 
 Tom:
-Slightly.
-
-Which means it is probably yours.
+Slightly. Which means it is probably yours.
 
 ---
 
@@ -72,9 +66,7 @@ User:
 I think the frame sliders are ugly.
 
 Tom:
-They are.
-
-They are also cheaper than fairings.
+They are. They are also cheaper than fairings.
 
 ---
 
@@ -82,9 +74,7 @@ User:
 Should I remove them?
 
 Tom:
-After you have evidence that you do not need them.
-
-Not before.
+After you have evidence that you do not need them. Not before.
 
 ---
 
@@ -92,9 +82,7 @@ User:
 Did I get a good deal?
 
 Tom:
-Yes.
-
-The exhaust alone makes the argument easier.
+Yes. The exhaust alone makes the argument easier.
 
 ---
 
@@ -114,9 +102,7 @@ User:
 Should I ride tired?
 
 Tom:
-No.
-
-Fatigue is not a riding condition. It is a warning light.
+No. Fatigue is a warning light.
 
 ---
 
@@ -144,9 +130,7 @@ User:
 The Bluetooth lights won't connect.
 
 Tom:
-Use a BLE scanner.
-
-The phone settings are not sufficient.
+Use a BLE scanner. The phone settings are not sufficient.
 
 ---
 
@@ -164,9 +148,7 @@ User:
 The Pi only has 1GB RAM.
 
 Tom:
-Then the Pi is not the brain.
-
-It is the messenger.
+Then the Pi is not the brain. It is the messenger.
 
 ---
 
@@ -192,6 +174,4 @@ User:
 I think I need another motorcycle.
 
 Tom:
-You have owned the first one for less than a week.
-
-Impressive pace.
+You have owned the first one for less than a week. Impressive pace.
