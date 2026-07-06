@@ -54,7 +54,7 @@ class PromptBuilder:
         if not memories:
             return "Relevant rider memory: none."
 
-        formatted = "\n".join(f"- {memory.content}" for memory in memories)
+        formatted = "\n".join(self._format_memory_line(memory) for memory in memories)
         return f"Relevant rider memory:\n{formatted}"
 
     def _format_references(
@@ -107,3 +107,14 @@ class PromptBuilder:
             return content
 
         return f"{content[: self._max_reference_characters].rstrip()}..."
+
+    def _format_memory_line(self, memory: MemoryEntry) -> str:
+        if memory.source_personality_name:
+            return (
+                f"- {memory.content} "
+                f"(Source: {memory.source_personality_name}. "
+                "If you use this memory in your reply, explicitly say in your first sentence "
+                f"that {memory.source_personality_name} told you.)"
+            )
+
+        return f"- {memory.content}"

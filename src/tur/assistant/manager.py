@@ -7,6 +7,7 @@ from typing import Iterator
 from tur.assistant.prompt_builder import PromptBuilder
 from tur.llm.base import ChatMessage, LLMClient
 from tur.memory.base import MemoryStore
+from tur.memory.extractor import MemoryExtractor
 from tur.memory.models import MemoryEntry
 from tur.personalities.loader import PersonalityRegistry
 from tur.personalities.models import PersonalityProfile
@@ -23,11 +24,13 @@ class AssistantManager:
         prompt_builder: PromptBuilder | None = None,
         default_personality: str = "nina",
         max_history_messages: int = 8,
+        memory_extractor: MemoryExtractor | None = None,
     ) -> None:
         self._registry = personality_registry
         self._memory_store = memory_store
         self._llm_client = llm_client
         self._prompt_builder = prompt_builder or PromptBuilder()
+        self._memory_extractor = memory_extractor or MemoryExtractor()
         self._history: list[ChatMessage] = []
         self._max_history_messages = max(0, max_history_messages)
         self._active_personality = self._registry.get(default_personality)
@@ -73,7 +76,13 @@ class AssistantManager:
         self._record_turn(user_chat_message, reply)
 
     def _build_turn_context(self, user_message: str) -> tuple[str, list[ChatMessage], ChatMessage]:
-        recalled_memories = self._memory_store.recall(user_message, limit=5)
+        self._remember_from_message(user_message)
+        recalled_memories = self._memory_store.recall(
+            user_message,
+            limit=5,
+            personality_key=self._active_personality.key,
+            personality_name=self._active_personality.name,
+        )
         history = self._recent_history()
         user_chat_message = ChatMessage(role="user", content=user_message)
         conversation = [*history, user_chat_message]
@@ -84,6 +93,17 @@ class AssistantManager:
             user_message=user_message,
         )
         return system_prompt, conversation, user_chat_message
+
+    def _remember_from_message(self, user_message: str) -> None:
+        extracted_memory = self._memory_extractor.extract(user_message)
+        if extracted_memory is None:
+            return
+
+        self._memory_store.remember(
+            extracted_memory,
+            source_personality_key=self._active_personality.key,
+            source_personality_name=self._active_personality.name,
+        )
 
     def _recent_history(self) -> list[ChatMessage]:
         if self._max_history_messages <= 0:

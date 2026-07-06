@@ -11,7 +11,9 @@ class MemoryEntry:
 
     content: str
     created_at: str
+    source_personality_key: str | None = None
+    source_personality_name: str | None = None
 
-    def to_dict(self) -> dict[str, str]:
+    def to_dict(self) -> dict[str, str | None]:
         """Serialize the memory entry for persistence."""
         return asdict(self)
