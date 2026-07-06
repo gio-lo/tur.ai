@@ -46,6 +46,10 @@ class PromptBuilder:
             if conversation
             else "This is the beginning of a chat session."
         )
+        response_length_block = (
+            "Response length: usually answer in 1 sentence. Use 2-3 sentences only when a longer reply "
+            "is naturally invited by the conversation or needed to be genuinely helpful. Never exceed 3 sentences."
+        )
 
         return "\n\n".join(
             [
@@ -53,6 +57,7 @@ class PromptBuilder:
                 f"Speaking style: {personality.speaking_style}",
                 f"Humor level: {personality.humor_level}",
                 f"Verbosity: {personality.verbosity}",
+                response_length_block,
                 self._format_references(personality, user_message, conversation),
                 presence_block,
                 mode_block,
@@ -82,9 +87,9 @@ class PromptBuilder:
 
     def _format_mode(self, mode: EnvironmentMode) -> str:
         mode_rules = {
-            "riding": "Current mode: riding. Be as brief as possible. Prioritize safety and low distraction.",
-            "stopped": "Current mode: stopped. Stay brief, but you may add a little context if useful.",
-            "parked": "Current mode: parked. You may show more personality, but still keep replies naturally concise.",
+            "riding": "Current mode: riding. Prioritize safety, low distraction, and immediately actionable wording.",
+            "stopped": "Current mode: stopped. You may give slightly more context when useful, but keep the same concise style.",
+            "parked": "Current mode: parked. You may sound a little more relaxed and conversational, but keep the same concise style.",
         }
         return mode_rules[mode]
 

@@ -228,3 +228,35 @@ def test_assistant_manager_can_set_mode(tmp_path) -> None:
     manager.set_mode("riding")
 
     assert manager.get_mode() == "riding"
+
+
+def test_prompt_builder_mode_instructions_keep_brief_style_across_contexts() -> None:
+    builder = PromptBuilder()
+
+    riding = builder._format_mode("riding")
+    stopped = builder._format_mode("stopped")
+    parked = builder._format_mode("parked")
+
+    assert "low distraction" in riding
+    assert "same concise style" in stopped
+    assert "same concise style" in parked
+
+
+def test_prompt_builder_sets_global_three_sentence_cap() -> None:
+    registry = PersonalityRegistry.from_directory(PERSONALITY_DIR)
+    personality = registry.get("tom")
+    builder = PromptBuilder()
+
+    prompt = builder.build(
+        personality=personality,
+        recalled_memories=[],
+        environment_events=[],
+        environment_mode="parked",
+        active_presence=None,
+        other_presences=[],
+        conversation=[],
+        user_message="help me think this through",
+    )
+
+    assert "usually answer in 1 sentence" in prompt
+    assert "Never exceed 3 sentences" in prompt
