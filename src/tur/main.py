@@ -24,6 +24,8 @@ def build_application() -> AssistantManager:
         llm_client=llm_client,
         prompt_builder=PromptBuilder(
             max_reference_sections=settings.max_personality_references,
+            fallback_reference_sections=settings.fallback_personality_references,
+            max_reference_characters=settings.max_reference_characters,
         ),
         default_personality=settings.default_personality,
         max_history_messages=settings.max_history_messages,

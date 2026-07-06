@@ -15,11 +15,13 @@ class PromptBuilder:
 
     def __init__(
         self,
-        max_reference_sections: int = 2,
-        fallback_reference_sections: int = 1,
+        max_reference_sections: int = 1,
+        fallback_reference_sections: int = 0,
+        max_reference_characters: int = 600,
     ) -> None:
         self._max_reference_sections = max_reference_sections
         self._fallback_reference_sections = fallback_reference_sections
+        self._max_reference_characters = max(0, max_reference_characters)
 
     def build(
         self,
@@ -67,7 +69,7 @@ class PromptBuilder:
 
         sections = "\n\n".join(
             [
-                f"[Reference: {reference.name}]\n{reference.content}"
+                f"[Reference: {reference.name}]\n{self._clip_reference(reference.content)}"
                 for reference in selected_references
             ]
         )
@@ -99,3 +101,9 @@ class PromptBuilder:
 
     def _tokenize(self, text: str) -> set[str]:
         return {token for token in re.findall(r"[a-z0-9_]+", text.lower()) if len(token) > 2}
+
+    def _clip_reference(self, content: str) -> str:
+        if self._max_reference_characters <= 0 or len(content) <= self._max_reference_characters:
+            return content
+
+        return f"{content[: self._max_reference_characters].rstrip()}..."

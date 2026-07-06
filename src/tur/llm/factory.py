@@ -14,6 +14,10 @@ def build_llm_client(settings: AppSettings) -> LLMClient:
         return OpenAIChatClient(
             api_key=settings.openai_api_key,
             model=settings.openai_model,
+            timeout_seconds=settings.openai_timeout_seconds,
+            max_completion_tokens=settings.openai_max_completion_tokens,
+            reasoning_effort=settings.openai_reasoning_effort,
+            verbosity=settings.openai_verbosity,
         )
 
     return DevelopmentLLMClient()

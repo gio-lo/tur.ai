@@ -64,3 +64,18 @@ def test_assistant_manager_caps_history_and_streams(tmp_path) -> None:
 
     assert streamed == "stub reply to: third"
     assert llm_client.message_counts == [1, 3, 3]
+
+
+def test_prompt_builder_can_skip_irrelevant_reference_fallback(tmp_path) -> None:
+    registry = PersonalityRegistry.from_directory(PERSONALITY_DIR)
+    personality = registry.get("nina")
+    builder = PromptBuilder(max_reference_sections=1, fallback_reference_sections=0)
+
+    prompt = builder.build(
+        personality=personality,
+        recalled_memories=[],
+        conversation=[],
+        user_message="hello",
+    )
+
+    assert "Personality references: none." in prompt
